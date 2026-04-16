@@ -476,6 +476,29 @@ button, input, select, textarea {
   font-family: 'Nunito', sans-serif;
 }
 
+.menu-policy-link {
+  background: none;
+  border: none;
+  color: var(--gray);
+  font-size: .82rem;
+  margin-top: .5rem;
+  margin-bottom: 1.4rem;
+  align-self: center;
+  text-decoration: underline;
+  font-family: 'Nunito', sans-serif;
+}
+
+.menu-register-btn {
+  margin-top: .5rem;
+  margin-bottom: 1.2rem;
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.menu-policy-link:hover {
+  color: var(--dark);
+}
+
 /* ══════════════════════════════════════════════
    MENÚ CLIENTE
 ══════════════════════════════════════════════ */
@@ -535,13 +558,6 @@ button, input, select, textarea {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.menu-note {
-  font-size: .75rem;
-  color: var(--gray);
-  text-align: center;
-  margin: .25rem 0;
 }
 
 /* ══════════════════════════════════════════════
@@ -628,6 +644,22 @@ button, input, select, textarea {
 /* ══════════════════════════════════════════════
    MIS PRENDAS
 ══════════════════════════════════════════════ */
+.mis-prendas-status-link {
+  background: none;
+  border: none;
+  color: var(--gray);
+  font-size: .82rem;
+  margin: 1rem auto 0;
+  align-self: center;
+  text-decoration: underline;
+  font-family: 'Nunito', sans-serif;
+  display: block;
+}
+
+.mis-prendas-status-link:hover {
+  color: var(--dark);
+}
+
 .prenda-item {
   background: var(--surface);
   border-radius: var(--r-md);
@@ -1788,7 +1820,6 @@ button, input, select, textarea {
   }
 }
 
-/* Celulares grandes */
 @media (min-width: 481px) and (max-width: 900px) {
   body.ui-mobile-large .phone-wrap {
     max-width: 640px;

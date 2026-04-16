@@ -16,6 +16,7 @@ const G = {
 
 document.addEventListener("DOMContentLoaded", async () => {
   bindModalClosers();
+  bindPasswordToggles();
   createPhotoViewer();
   initResponsive();
   await restoreSession();
@@ -60,6 +61,24 @@ function bindModalClosers() {
       closeSidebar();
       closeImageViewer();
     }
+  });
+}
+
+function bindPasswordToggles() {
+  document.querySelectorAll("[data-toggle-pass]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const inputId = btn.getAttribute("data-toggle-pass");
+      const input = document.getElementById(inputId);
+      if (!input) return;
+
+      if (input.type === "password") {
+        input.type = "text";
+        btn.textContent = "🙈";
+      } else {
+        input.type = "password";
+        btn.textContent = "👁";
+      }
+    });
   });
 }
 
@@ -203,8 +222,26 @@ async function registerClient() {
   const telefono = val("reg-phone").trim();
   const password = val("reg-pass");
 
+  const soloLetras = /^[A-Za-zÁÉÍÓÚáéíóúÑñÜü\s]+$/;
+  const soloNumeros = /^\d+$/;
+
   if (!nombre || !apellido || !email || !password) {
     toast("Completa todos los campos obligatorios.", "error");
+    return;
+  }
+
+  if (nombre.length < 1 || !soloLetras.test(nombre)) {
+    toast("El nombre debe contener al menos un carácter válido.", "error");
+    return;
+  }
+
+  if (apellido.length < 1 || !soloLetras.test(apellido)) {
+    toast("El apellido debe contener al menos un carácter válido.", "error");
+    return;
+  }
+
+  if (telefono && !soloNumeros.test(telefono)) {
+    toast("El teléfono debe contener solo números.", "error");
     return;
   }
 
@@ -318,10 +355,19 @@ function npContinuar() {
 
   showStep(2);
 
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
+  const hoy = new Date();
+
+  const minFecha = new Date();
+  minFecha.setDate(hoy.getDate() + 1);
+
+  const maxFecha = new Date(hoy.getFullYear(), hoy.getMonth() + 2, 0);
+
   const el = document.getElementById("np-entrega");
-  if (el) el.min = tomorrow.toISOString().split("T")[0];
+
+  if (el) {
+    el.min = minFecha.toISOString().split("T")[0];
+    el.max = maxFecha.toISOString().split("T")[0];
+  }
 }
 
 function npVolver() {
@@ -337,6 +383,27 @@ async function npFinalizar() {
   const fechaEntrega = val("np-entrega");
   if (!fechaEntrega) {
     toast("Selecciona la fecha de entrega.", "error");
+    return;
+  }
+
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+
+  const minFecha = new Date(hoy);
+  minFecha.setDate(minFecha.getDate() + 1);
+
+  const maxFecha = new Date(hoy.getFullYear(), hoy.getMonth() + 2, 0);
+  maxFecha.setHours(0, 0, 0, 0);
+
+  const fechaSeleccionada = new Date(`${fechaEntrega}T00:00:00`);
+
+  if (fechaSeleccionada < minFecha) {
+    toast("La fecha de entrega debe ser a partir de mañana.", "error");
+    return;
+  }
+
+  if (fechaSeleccionada > maxFecha) {
+    toast("Solo puedes elegir fechas dentro del mes actual y el siguiente.", "error");
     return;
   }
 
@@ -419,74 +486,37 @@ async function loadMisPrendas() {
   }
 }
 
-// Legacy alias kept for compatibility
-async function buscarPedido() { await iniciarSeguimiento(); }
-
-async function iniciarSeguimiento() {
+async function buscarPedido() {
   const folio = val("tracking-input").trim().toUpperCase();
 
   if (!folio) {
-    toast("Ingresa un folio de seguimiento.", "error");
+    toast("Ingresa un ID de seguimiento.", "error");
     return;
   }
 
-  const result   = document.getElementById("tracking-result");
-  const empty    = document.getElementById("tracking-empty");
-  const loading  = document.getElementById("trk-loading");
-  const btn      = document.getElementById("trk-btn");
+  const result = document.getElementById("tracking-result");
+  const empty = document.getElementById("tracking-empty");
 
-  // Reset UI
   result?.classList.add("hidden");
-  empty?.classList.add("hidden");
-  loading?.classList.remove("hidden");
-  if (btn) { btn.disabled = true; }
+  if (empty) empty.style.display = "none";
 
   try {
     const data = await api(`/api/orders/track/${encodeURIComponent(folio)}`);
     const p = data.order;
 
-    // Fill header info
-    setText("tr-id",      "#" + (p.Folio || folio));
-    setText("tr-prenda",  p.tipoPrenda || "—");
-    setText("tr-cliente", p.cliente    || "—");
+    setText("tr-id", p.Folio || folio);
+    setText("tr-prenda", p.tipoPrenda || "—");
+    setText("tr-cliente", p.cliente || "—");
     setText("tr-entrega", fmtDate(p.FechaEntrega));
-    setText("tr-estado",  estadoLabel(p.Estado));
+    setText("tr-estado", estadoLabel(p.Estado));
 
-    // Drive timeline
-    renderTimeline(p.Estado);
-
-    // Status banner color
-    const banner = document.getElementById("trk-status-banner");
-    if (banner) banner.setAttribute("data-state", p.Estado || "");
-
-    loading?.classList.add("hidden");
     result?.classList.remove("hidden");
   } catch (err) {
-    loading?.classList.add("hidden");
     if (empty) {
-      empty.classList.remove("hidden");
-      empty.textContent = `No se encontró ningún pedido con folio "${folio}".`;
+      empty.style.display = "block";
+      empty.textContent = `No se encontró ningún pedido con ID ${folio}.`;
     }
-  } finally {
-    if (btn) { btn.disabled = false; }
   }
-}
-
-/**
- * renderTimeline(estado)
- * Marks steps as "done" (completed) or "active" (current) in the process timeline.
- */
-function renderTimeline(estado) {
-  const ORDER = ["pendiente", "en_proceso", "planchado", "listo", "entregado"];
-  const idx   = ORDER.indexOf(estado);
-
-  ORDER.forEach((key, i) => {
-    const step = document.getElementById(`step-${key}`);
-    if (!step) return;
-    step.classList.remove("done", "active");
-    if (i < idx)  step.classList.add("done");
-    if (i === idx) step.classList.add("active");
-  });
 }
 
 function loadCuenta() {
