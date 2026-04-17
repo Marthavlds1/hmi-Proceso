@@ -431,15 +431,9 @@ function mostrarModalConfirmacion(data) {
   const fecha = ahora.toLocaleDateString("es-MX", { day: "2-digit", month: "long", year: "numeric" });
   const hora  = ahora.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" });
 
-  const colaRaw = data.colaAnterior !== undefined ? data.colaAnterior
-                : data.pendientesAntes !== undefined ? data.pendientesAntes
-                : data.queueBefore !== undefined ? data.queueBefore
-                : null;
-
   document.getElementById("conf-folio").textContent = folio;
   document.getElementById("conf-fecha").textContent  = fecha;
   document.getElementById("conf-hora").textContent   = hora;
-  document.getElementById("conf-cola").textContent   = colaRaw !== null ? String(colaRaw) : "—";
 
   // Generar QR usando la librería qrcode.js
   const canvas = document.getElementById("conf-qr-canvas");

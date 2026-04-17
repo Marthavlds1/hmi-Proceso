@@ -2061,3 +2061,28 @@ button, input, select, textarea {
   font-size: 1.4rem;
   color: var(--red);
 }
+
+.conf-aviso-tiempo {
+  flex-direction: row !important;
+  align-items: flex-start;
+  gap: .6rem;
+  background: #fff8e1;
+  border: 1px solid #ffe082;
+}
+
+.conf-aviso-icono {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  margin-top: .1rem;
+}
+
+.conf-aviso-txt {
+  font-size: .82rem;
+  color: #6d5200;
+  line-height: 1.45;
+  font-weight: 500;
+}
+
+.conf-aviso-txt strong {
+  color: #e63329;
+}
